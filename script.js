@@ -69,7 +69,6 @@ const gameLogic = (function () {
         column = input[1];
 
         board.addSymbol(row, column, activePlayer.getSymbol());
-        console.log(availableFields)
 
         // Print Board State
         console.log(board.toString());
