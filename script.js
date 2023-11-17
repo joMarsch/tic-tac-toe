@@ -18,22 +18,19 @@ function createPlayer(playerName, playerSymbol) {
 const gameBoard = (function () {
     let board = Array.from(new Array(3), () => new Array(3).fill(" "));
 
+    const getBoard = () => board;
 
-    return {
-        getBoard: function () {
-            return board;
-        },
-        addSymbol: function (row, column, symbol) {
-            board[row][column] = symbol;
-        },
-        toString: function () {
-            let boardString = "";
-            for (let i = 0; i < board.length; i++) {
-                boardString += `${board[i].toString()}\n`
-            }
-            return boardString;
-        },
+    const addSymbol = (row, column, symbol) => board[row][column] = symbol;
+
+    const toString = () => {
+        let boardString = "";
+        for (let i = 0; i < board.length; i++) {
+            boardString += `${board[i].toString()}\n`
+        }
+        return boardString;
     };
+
+    return { getBoard, addSymbol, toString, };
 
 })();
 
@@ -53,20 +50,20 @@ const gameLogic = (function () {
         }
     };
 
-    const playTurn = () => {
+    const playTurn = (input) => {
         // Print active player
         console.log(activePlayer.playerInfo());
 
         // Active player move
-        const input = getPlayerInput();
 
-        if (input == null) {
-            playingGame = false;
+        const checkedInput = checkPlayerInput(input);
+
+        if(checkedInput == null) {
             return;
         }
 
-        row = input[0];
-        column = input[1];
+        row = parseInt(input[0]);
+        column = parseInt(input[1]);
 
         board.addSymbol(row, column, activePlayer.getSymbol());
 
@@ -99,24 +96,13 @@ const gameLogic = (function () {
         }
     };
 
-    const getPlayerInput = () => {
-        while (true) {
-            const input = prompt("Give row and column:")
-
-            if (allowedFields.includes(input) && availableFields.has(input)) {
-                row = parseInt(input[0]);
-                column = parseInt(input[1]);
-                availableFields.delete(input);
-                return input;
-            }
-
-            if (input == null) {
-                return input;
-            }
+    const checkPlayerInput = (input) => {
+        if (availableFields.has(input)) {
+            availableFields.delete(input);
+            return input;
         }
-    }
-
-
+        return null;
+    };
 
     const checkWinning = (row, column) => {
         // Checks if there is a winning state based on last symbol placement
@@ -164,13 +150,51 @@ const gameLogic = (function () {
         }
 
         return rowWinning || columnWinning || diagonalWinning;
-    }
+    };
 
     const checkTie = () => {
         return availableFields.size == 0;
-    }
+    };
 
-    return { playGame };
+    return { playGame, playTurn };
 })();
 
-gameLogic.playGame();
+const displayLogic = (function () {
+    const container = document.querySelector(".container");
+    const game = gameLogic;
+    const board = gameBoard;
+
+    const initializeBoard = () => {
+        addFieldsToContainer(container);
+    }
+
+    const createField = (row, column) => {
+        const field = document.createElement("div");
+
+        field.classList.add("field");
+        field.dataset.fieldCoordinate = row.toString() + column.toString();
+
+        field.addEventListener("click", () => {
+            game.playTurn(field.dataset.fieldCoordinate);
+
+            // Display symbol in field via CSS
+            field.textContent = board.getBoard()[row][column];
+        })
+
+        return field
+    };
+
+    const addFieldsToContainer = (container) => {
+        for (let row = 0; row < 3; row++) {
+            for (let column = 0; column < 3; column++) {
+                container.appendChild(createField(row, column));
+            }
+        }
+    };
+
+    return { initializeBoard };
+
+})();
+
+//gameLogic.playGame();
+displayLogic.initializeBoard();

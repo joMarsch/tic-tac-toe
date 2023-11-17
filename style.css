@@ -3,3 +3,18 @@
     padding: 0px;
     box-sizing: border-box;
 }
+
+.container {
+    width: 360px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+
+    background-color: bisque;
+}
+
+.field {
+    border: 1px black solid;
+}
