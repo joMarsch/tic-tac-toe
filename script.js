@@ -30,7 +30,11 @@ const gameBoard = (function () {
         return boardString;
     };
 
-    return { getBoard, addSymbol, toString, };
+    const reset = () => {
+        board.forEach(row => row.fill(" "));
+    }
+
+    return { getBoard, addSymbol, toString, reset };
 
 })();
 
@@ -39,23 +43,24 @@ const gameLogic = (function () {
     const player2 = createPlayer("player2", "o");
     const board = gameBoard;
     const allowedFields = ["00", "01", "02", "10", "11", "12", "20", "21", "22"];
-    const availableFields = new Set(allowedFields);
-
+    
+    let availableFields = new Set(allowedFields);
     let activePlayer = player1;
-    let playingGame = true;
+    let isPlayingGame = true;
+    let isWinning = false;
 
-    const playGame = () => {
-        while (playingGame) {
-            playTurn();
-        }
-    };
+    const getIsPlayingGame = () => isPlayingGame;
+
+    const getIsWinning = () => isWinning;
+
+    const getActivePlayer = () => activePlayer;
 
     const playTurn = (input) => {
-        // Print active player
-        console.log(activePlayer.playerInfo());
+        if (isPlayingGame == false) {
+            return;
+        }
 
         // Active player move
-
         const checkedInput = checkPlayerInput(input);
 
         if(checkedInput == null) {
@@ -67,20 +72,16 @@ const gameLogic = (function () {
 
         board.addSymbol(row, column, activePlayer.getSymbol());
 
-        // Print Board State
-        console.log(board.toString());
-
         // Check if Winning
         if (checkWinning(row, column)) {
-            console.log(`${activePlayer.getName()} won`)
-            playingGame = false;
+            isPlayingGame = false;
+            isWinning = true;
             return;
         }
 
         //Check if tie
         if (checkTie()) {
-            console.log("We have a tie!")
-            playingGame = false;
+            isPlayingGame = false;
             return;
         }
 
@@ -156,17 +157,35 @@ const gameLogic = (function () {
         return availableFields.size == 0;
     };
 
-    return { playGame, playTurn };
+    const restartGame = () => {
+        board.reset();
+        isPlayingGame = true;
+        activePlayer = player1;
+        availableFields = new Set(allowedFields);
+        isWinning = false;
+    }
+
+    return { playTurn, restartGame, getIsPlayingGame, getIsWinning, getActivePlayer };
 })();
 
 const displayLogic = (function () {
     const container = document.querySelector(".container");
+    const restartButton = document.querySelector("#restart-button");
+    const message = document.querySelector("#message");
     const game = gameLogic;
     const board = gameBoard;
 
     const initializeBoard = () => {
         addFieldsToContainer(container);
-    }
+        setMessage(displayedMessage());
+
+        restartButton.addEventListener("click", () => {
+            container.replaceChildren();
+            addFieldsToContainer(container);
+            game.restartGame();
+            setMessage(displayedMessage());
+        });
+    };
 
     const createField = (row, column) => {
         const field = document.createElement("div");
@@ -176,6 +195,7 @@ const displayLogic = (function () {
 
         field.addEventListener("click", () => {
             game.playTurn(field.dataset.fieldCoordinate);
+            setMessage(displayedMessage());
 
             // Display symbol in field via CSS
             field.textContent = board.getBoard()[row][column];
@@ -192,9 +212,28 @@ const displayLogic = (function () {
         }
     };
 
+    const displayedMessage = () => {
+        let message;
+        let playerSymbol = game.getActivePlayer().getSymbol().toUpperCase();
+
+        if(game.getIsPlayingGame()) {
+            message = `It's player ${playerSymbol}'s turn`;
+        } else if (game.getIsWinning()) {
+            message = `Player ${playerSymbol} won!`;
+        } else {
+            message = `We have a tie!`;
+        }
+
+        return message;
+    };
+
+    const setMessage = (newMessage) => {
+        message.textContent = newMessage;
+    };
+
     return { initializeBoard };
 
 })();
 
-//gameLogic.playGame();
+
 displayLogic.initializeBoard();
