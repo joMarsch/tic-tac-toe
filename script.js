@@ -71,6 +71,7 @@ const gameLogic = (function () {
         column = parseInt(input[1]);
 
         board.addSymbol(row, column, activePlayer.getSymbol());
+        console.log(board.toString());
 
         // Check if Winning
         if (checkWinning(row, column)) {
@@ -145,10 +146,13 @@ const gameLogic = (function () {
         }
 
         //Second from bottom left to top right
-        if ((row == 2 && column == 0) || (row == 1 && column == 1) || (row == 0 && column == 2)) {
-            diagonalWinning = (lastSymbol === board.getBoard()[indexDown(row, 1)][indexUp(column, 1)])
-                && (lastSymbol === board.getBoard()[indexDown(row, 2)][indexUp(column, 2)]);
+        if(diagonalWinning == false) {
+            if ((row == 2 && column == 0) || (row == 1 && column == 1) || (row == 0 && column == 2)) {
+                diagonalWinning = (lastSymbol === board.getBoard()[indexDown(row, 1)][indexUp(column, 1)])
+                    && (lastSymbol === board.getBoard()[indexDown(row, 2)][indexUp(column, 2)]);
+            }
         }
+        
 
         return rowWinning || columnWinning || diagonalWinning;
     };
@@ -198,7 +202,7 @@ const displayLogic = (function () {
             setMessage(displayedMessage());
 
             // Display symbol in field via CSS
-            field.textContent = board.getBoard()[row][column];
+            field.classList.add(board.getBoard()[row][column])
         })
 
         return field
